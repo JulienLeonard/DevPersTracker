@@ -1,0 +1,43 @@
+body {
+  font-family: Verdana, Helvetica, sans-serif;
+  background-color: #DDDDDD;
+  font-size: 16px
+}
+
+input {
+  font-family: Verdana, Helvetica, sans-serif;
+  background-color: #FFFFFF;
+  font-size: 16px
+}
+
+textarea {
+  font-family: Verdana, Helvetica, sans-serif;
+  font-size: 32px
+}
+
+td {
+  font-family: Verdana, Helvetica, sans-serif;
+  font-size: 16px
+}
+
+
+.scheduleroutineNA {
+  background-color: #AAAAAA;    
+}
+
+.scheduleroutineOK {
+  background-color: #00FF77;    
+}
+
+.scheduleroutineKO {
+  background-color: #FF7700;    
+}
+
+.routinecheck {
+ background-color: #FF3300;    
+}
+
+.routineuncheck {
+ background-color: #00FF33;
+}
+
