@@ -43,14 +43,14 @@ def getroutinestatus(routine,utcdaterange):
     if len(routinechecks):
             return "OK"
     else:
-        if routine.status == "NA":
+        if routine.status == "NA" or routine.date > utcdaterange[0]:
             return "NA"
         else:
             return "KO"
 
 def htmlroutinetodaycheck(routine,utcdaterange):
     status = getroutinestatus(routine,utcdaterange)
-    if status == "KO":
+    if status == "KO" or status == "NA":
         checklabel = "Check"
         return buttonformpost("/addroutinecheck/" + routine.key.urlsafe(), checklabel,"routinecheck")
     if status == "OK":
