@@ -25,28 +25,6 @@ from timeutils     import *
 # import pytz
 
 
-def getroutinechecks(routinename):
-    return RoutineCheck.query(RoutineCheck.routinename == routinename).fetch()
-
-def getdateroutinechecks(routinename,utcdaterange):
-    result = []
-    for routinecheck in getroutinechecks(routinename):
-        if isdateinrange(utcdaterange,routinecheck.date):
-            result.append(routinecheck)
-    return result
-
-#
-# can be NA, OK or KO
-#
-def getroutinestatus(routine,utcdaterange):
-    routinechecks = getdateroutinechecks(routine.name,utcdaterange)
-    if len(routinechecks):
-            return "OK"
-    else:
-        if routine.status == "NA" or routine.date > utcdaterange[0]:
-            return "NA"
-        else:
-            return "KO"
 
 def htmlroutinetodaycheck(routine,utcdaterange):
     status = getroutinestatus(routine,utcdaterange)
@@ -66,7 +44,7 @@ def tableschedule(request,ndays):
 
     sdates = [sday(utc2local(daterange[0])) for daterange in dateranges]
 
-    headrow = [("Date","scheduletitle")] + [(sdate,"scheduletitle") for sdate in sdates]
+    headrow = [("Date","scheduletitle"), ("Frequency","scheduletitle")] + [(sdate,"scheduletitle") for sdate in sdates]
 
     routinedata = {}
     user        = users.get_current_user()
@@ -77,7 +55,7 @@ def tableschedule(request,ndays):
         for daterange in dateranges:
             routinedata[routine.name][daterange] = getroutinestatus(routine,daterange)
         
-    rows = [headrow] + [[(routine.name,"scheduleroutinename")] + [(routinedata[routine.name][daterange],"scheduleroutine" + routinedata[routine.name][daterange]) for daterange in dateranges[:-1]] + [(htmlroutinetodaycheck(routine,dateranges[-1]),"scheduleroutinecheck")] for routine in allroutines]
+    rows = [headrow] + [[(routine.name,"scheduleroutinename"), (str(getroutinedayfrequency(routine)),"scheduleroutinefrequency")] + [(routinedata[routine.name][daterange],"scheduleroutine" + routinedata[routine.name][daterange]) for daterange in dateranges[:-1]] + [(htmlroutinetodaycheck(routine,dateranges[-1]),"scheduleroutinecheck")] for routine in allroutines]
 
     return htmltable(htmldivrows(rows))
 

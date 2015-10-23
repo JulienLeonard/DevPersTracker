@@ -95,6 +95,6 @@ class ViewRoutine(webapp2.RequestHandler):
 
         self.response.write(html("h1","Description"))
         
-        self.response.write(htmltable( htmlrows( [ ["Name", routine.name],["Description", routine.description],["Goal", routine.goalname]])))
+        self.response.write(htmltable( htmlrows( [ ["Name", routine.name],["Description", routine.description],["Frequency", getroutinedayfrequency(routine)],["Goal", routine.goalname]])))
 
         self.response.write('</body></html>')
