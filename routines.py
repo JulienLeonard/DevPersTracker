@@ -15,7 +15,9 @@ def routinehandlers():
             ('/addroutine/(.*)',    AddRoutine),
             ('/doaddroutine/(.*)',  DoAddRoutine),
             ('/deleteroutine/(.*)', DeleteRoutine),
-            ('/viewroutine/(.*)',   ViewRoutine)]
+            ('/viewroutine/(.*)',   ViewRoutine),
+            ('/editroutine/(.*)',   EditRoutine),
+            ('/doeditroutine/(.*)',   DoEditRoutine)]
 
 def addroutine(request,name,description,goalname):
     user = users.get_current_user()
@@ -88,13 +90,61 @@ class DeleteRoutine(webapp2.RequestHandler):
 class ViewRoutine(webapp2.RequestHandler):
     def get(self,routineid):
         self.response.write('<html><body>')
+        self.response.write(headcss())
 
-        dict_name      = self.request.get('dict_name',USERDICT)
+        dict_name   = self.request.get('dict_name',USERDICT)
         routine_key = ndb.Key(urlsafe=routineid)
-        routine = routine_key.get()
+        routine     = routine_key.get()
 
-        self.response.write(html("h1","Description"))
+        self.response.write(html("h1","Routine " + routine.name))
         
-        self.response.write(htmltable( htmlrows( [ ["Name", routine.name],["Description", routine.description],["Frequency", getroutinedayfrequency(routine)],["Goal", routine.goalname]])))
+        self.response.write("<hr>")
+
+        self.response.write(htmltable( htmlrows( [ ["Name", routine.name],["Description", routine.description],["Frequency", getroutinedayfrequency(routine)],["Intensity",routine.intensity],["Goal", routine.goalname]])))
+
+        self.response.write("<hr>")
+
+        self.response.write(htmltable(htmlrow( [buttonformget("/editroutine/" + routine.key.urlsafe(),"Edit"), buttonformget("/listroutines","List"), buttonformget("/","Home")])))
 
         self.response.write('</body></html>')
+
+
+# [START EditRoutine]
+class EditRoutine(webapp2.RequestHandler):
+    def get(self,routineid):
+        self.response.write('<html><body>')
+        self.response.write(headcss())
+
+        dict_name   = self.request.get('dict_name',USERDICT)
+        routine_key = ndb.Key(urlsafe=routineid)
+        routine     = routine_key.get()
+
+        self.response.write(html("h1","Routine " + routine.name))
+        
+        self.response.write("<hr>")
+
+        self.response.write(htmlform("/doeditroutine/" + routine.key.urlsafe(), 
+                                     [routine.name, htmltextarea("routinedescription",routine.description), htmltextarea("routineintensity",str(routine.intensity))], 
+                                     "Submit"))
+
+        self.response.write("<hr>")
+
+        self.response.write(htmltable(htmlrow( [buttonformget("/viewroutine/" + routine.key.urlsafe(),"Cancel"), buttonformget("/","Home")])))
+
+        self.response.write('</body></html>')
+
+# [START DoEditRoutine]
+class DoEditRoutine(webapp2.RequestHandler):
+    def post(self,routineid):
+        self.response.write('<html><body>')
+        self.response.write(headcss())
+
+        dict_name   = self.request.get('dict_name',USERDICT)
+        routine_key = ndb.Key(urlsafe=routineid)
+        routine     = routine_key.get()
+
+        routine.description = self.request.get('routinedescription')
+        routine.intensity   = self.request.get('routineintensity')
+        routine.put()
+
+        self.redirect("/viewroutine/" + routine.key.urlsafe())

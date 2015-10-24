@@ -17,6 +17,7 @@ class Routine(ndb.Model):
     description   = ndb.StringProperty(indexed=False)
     goalname      = ndb.StringProperty(indexed=True)
     status        = ndb.StringProperty(indexed=True)
+    intensity     = ndb.StringProperty(indexed=False)
     date          = ndb.DateTimeProperty(auto_now_add=True)
 
 class RoutineCheck(ndb.Model):
@@ -24,5 +25,6 @@ class RoutineCheck(ndb.Model):
     email         = ndb.StringProperty(indexed=True)
     date          = ndb.DateTimeProperty(auto_now_add=True)
     routinename   = ndb.StringProperty(indexed=True)
+    value         = ndb.StringProperty(indexed=False)
     
 

@@ -103,7 +103,7 @@ class ViewGoal(webapp2.RequestHandler):
 
             self.response.write(html("h1","Routines"))
 
-            self.response.write(htmltable(htmlrows( [ [routine.name, routine.description, routine.status, date2string(utc2local(routine.date))] for routine in getroutines(goal.name,user.email()) ] ) ) )
+            self.response.write(htmltable(htmlrows( [ [routine.name, routine.description, routine.status, date2string(utc2local(routine.date)), buttonformget("/viewroutine/" + routine.key.urlsafe(),"+")] for routine in getroutines(goal.name,user.email()) ] ) ) )
 
             self.response.write("<hr>")
 

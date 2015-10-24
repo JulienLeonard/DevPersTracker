@@ -5,6 +5,8 @@ def htmlrow(columns):
     for col in columns:
         if col == None:
             col = "None"
+        if isinstance( col, ( int, long, float ) ):
+            col = str(col)
         result = result + "<td>" + col  + "</td>"
     result = result + "</tr>"
     return result
@@ -55,3 +57,15 @@ def headcss():
 
 def htmllink(url,text):
     return "<a href=\"" + url + "\">" + text + "</a>"
+
+def htmlform(action,lines,submitlabel):
+    lines = ["<div>" + line + "</div>" for line in lines]
+    content = "\n".join(lines)
+
+    return "<form action=\"" + action + "\" method=\"post\">" + content + "<div><input type=\"submit\" value=\"" + submitlabel + "\"></div></form>"
+
+def htmltextarea(name,value):
+    return "<textarea name=\"" + name + "\"         rows=\"1\" cols=\"40\">" + value + "</textarea>"
+
+
+
