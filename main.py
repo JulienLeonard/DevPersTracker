@@ -44,7 +44,7 @@ def tableschedule(request,ndays):
 
     sdates = [sday(utc2local(daterange[0])) for daterange in dateranges]
 
-    headrow = [("Date","scheduletitle"), ("Frequency","scheduletitle")] + [(sdate,"scheduletitle") for sdate in sdates]
+    headrow = [("Date","scheduletitle"), ("Frequency","scheduletitle"), ("Intensity","scheduletitle")] + [(sdate,"scheduletitle") for sdate in sdates]
 
     routinedata = {}
     user        = users.get_current_user()
@@ -55,7 +55,7 @@ def tableschedule(request,ndays):
         for daterange in dateranges:
             routinedata[routine.name][daterange] = getroutinestatus(routine,daterange)
         
-    rows = [headrow] + [[(routine.name,"scheduleroutinename"), (str(getroutinedayfrequency(routine)),"scheduleroutinefrequency")] + [(routinedata[routine.name][daterange],"scheduleroutine" + routinedata[routine.name][daterange]) for daterange in dateranges[:-1]] + [(htmlroutinetodaycheck(routine,dateranges[-1]),"scheduleroutinecheck")] for routine in allroutines]
+    rows = [headrow] + [[(routine.name,"scheduleroutinename"), (str(getroutinedayfrequency(routine)),"scheduleroutinefrequency"), (str(routine.intensity),"scheduleroutineintensity")] + [(routinedata[routine.name][daterange],"scheduleroutine" + routinedata[routine.name][daterange]) for daterange in dateranges[:-1]] + [(htmlroutinetodaycheck(routine,dateranges[-1]),"scheduleroutinecheck")] for routine in allroutines]
 
     return htmltable(htmldivrows(rows))
 
@@ -115,13 +115,14 @@ class ScheduleHandler(webapp2.RequestHandler):
         self.response.write(htmltable(htmlrow([buttonformget("/","Home")])))
         self.response.write('</html></body>')
 
-def addroutinecheck(request,routinename):
+def addroutinecheck(request,routinename,value="True"):
     user = users.get_current_user()
     if user:
         dict_name = request.request.get('dict_name', USERDICT)
         oroutinecheck = RoutineCheck(parent=dict_key(dict_name))
         oroutinecheck.routinename        = routinename
         oroutinecheck.email              = user.email()
+        oroutinecheck.value              = value
         oroutinecheck.put()
     return oroutinecheck
 
@@ -137,10 +138,40 @@ class AddRoutineCheck(webapp2.RequestHandler):
         if len(routinechecks):
             for routinecheck in routinechecks:
                 routinecheck.key.delete()
+            self.redirect("/")
         else:
-            addroutinecheck(self,routine.name)
+            if routine.intensity == "None" or routine.intensity == None:
+                addroutinecheck(self,routine.name)
+                self.redirect("/")
+            else:
+                self.redirect("/addroutinecheckintensity/" + routineid)
+
+
+class AddRoutineCheckIntensity(webapp2.RequestHandler):
+    def get(self,routineid):
         
+        routine = ndb.Key(urlsafe=routineid).get()
+        
+        self.response.write('<body><html>')
+        self.response.write(headcss())
+        self.response.write(html("h1","Add routine check for routine " + routine.name))
+        self.response.write(htmlform("/doaddroutinecheckintensity/" + routine.key.urlsafe(), 
+                                     [htmltextarea("routinecheckvalue",0)], 
+                                     "Submit"))
+        self.response.write("<hr>")
+        self.response.write(htmltable(htmlrow([buttonformget("/","Home")])))
+        self.response.write('</html></body>')
+
+
+
+class DoAddRoutineCheckIntensity(webapp2.RequestHandler):
+    def post(self,routineid):
+        
+        routine = ndb.Key(urlsafe=routineid).get()
+        addroutinecheck(self,routine.name,self.request.get("routinecheckvalue"))
         self.redirect("/")
+
+
 
 class Logs(webapp2.RequestHandler):
     def get(self):
@@ -175,7 +206,6 @@ class Logs(webapp2.RequestHandler):
 #             self.response.write('</html></body>')
 
 
-handlers = [('/', MainHandler),('/logs', Logs), ('/last/(.*)', ScheduleHandler),('/addroutinecheck/(.*)', AddRoutineCheck)] + goalhandlers() + routinehandlers()
-
+handlers = [('/', MainHandler),('/logs', Logs), ('/last/(.*)', ScheduleHandler),('/addroutinecheck/(.*)', AddRoutineCheck), ('/addroutinecheckintensity/(.*)', AddRoutineCheckIntensity), ('/doaddroutinecheckintensity/(.*)', DoAddRoutineCheckIntensity)] + goalhandlers() + routinehandlers()
 
 app = webapp2.WSGIApplication(handlers, debug=True)

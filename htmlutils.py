@@ -65,7 +65,7 @@ def htmlform(action,lines,submitlabel):
     return "<form action=\"" + action + "\" method=\"post\">" + content + "<div><input type=\"submit\" value=\"" + submitlabel + "\"></div></form>"
 
 def htmltextarea(name,value):
-    return "<textarea name=\"" + name + "\"         rows=\"1\" cols=\"40\">" + value + "</textarea>"
+    return "<textarea name=\"" + name + "\"         rows=\"1\" cols=\"40\">" + str(value) + "</textarea>"
 
 
 
