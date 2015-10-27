@@ -77,43 +77,41 @@ class MainHandler(webapp2.RequestHandler):
 
         user = users.get_current_user()
 
+        content = []
         if not user:
-            self.response.write('<body><html>')
             url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
-            self.response.write(htmllink(url,url_linktext))
-            self.response.write('</html></body>')
+            content.append(htmllink(url,url_linktext))
         else:
             url = users.create_logout_url(self.request.uri)
             url_linktext = 'Logout'
-            self.response.write('<body><html>')
-            self.response.write(headcss())
-            self.response.write(html("h1","Goals"))
-            self.response.write(htmltable(htmlrows([[goal.name,goal.description] for goal in getallgoals(self,user.email())])))
-            self.response.write(htmltable(htmlrow([buttonformget("/listgoals","List"), buttonformget("/addgoal","Add")])))
-            self.response.write("<hr>")
-            self.response.write(html("h1","Schedule"))
-            self.response.write("Now is " + date2string(localnow()))
-            self.response.write(htmltable(htmlrow([buttonformget("/last/month","Month"), buttonformget("/last/week","Week")])))
-            self.response.write(htmlschedule(self,"week"))
-            self.response.write("<hr>")
-            self.response.write(htmltable(htmlrow([buttonformget("/logs","Logs")])))
-            self.response.write("<hr>")
-            self.response.write(htmllink(url,url_linktext))
-            self.response.write('</html></body>')
+            content.append(html("h1","Goals"))
+            content.append(htmltable(htmlrows([[goal.name,goal.description] for goal in getallgoals(self,user.email())])))
+            content.append(htmltable(htmlrow([buttonformget("/listgoals","List"), buttonformget("/addgoal","Add")])))
+            content.append("<hr>")
+            content.append(html("h1","Schedule"))
+            content.append("Now is " + date2string(localnow()))
+            content.append(htmltable(htmlrow([buttonformget("/last/month","Month"), buttonformget("/last/week","Week")])))
+            content.append(htmlschedule(self,"week"))
+            content.append("<hr>")
+            content.append(htmltable(htmlrow([buttonformget("/logs","Logs")])))
+            content.append("<hr>")
+            content.append(htmllink(url,url_linktext))
+
+        writehtmlresponse(handler,content)
 
 class ScheduleHandler(webapp2.RequestHandler):
     def get(self,timetype):
-        self.response.write('<body><html>')
-        self.response.write(headcss())
-        self.response.write(html("h1","Schedule"))
-        self.response.write("<hr>")
-        self.response.write(htmltable(htmlrow([buttonformget("/last/month","Month"), buttonformget("/last/week","Week")])))
-        self.response.write("<hr>")
-        self.response.write(htmlschedule(self,timetype))
-        self.response.write("<hr>")
-        self.response.write(htmltable(htmlrow([buttonformget("/","Home")])))
-        self.response.write('</html></body>')
+        content = []
+        content.append(html("h1","Schedule"))
+        content.append("<hr>")
+        content.append(htmltable(htmlrow([buttonformget("/last/month","Month"), buttonformget("/last/week","Week")])))
+        content.append("<hr>")
+        content.append(htmlschedule(self,timetype))
+        content.append("<hr>")
+        content.append(htmltable(htmlrow([buttonformget("/","Home")])))
+        writehtmlresponse(handler,content)
+
 
 def addroutinecheck(request,routinename,value="True"):
     user = users.get_current_user()
@@ -152,15 +150,14 @@ class AddRoutineCheckIntensity(webapp2.RequestHandler):
         
         routine = ndb.Key(urlsafe=routineid).get()
         
-        self.response.write('<body><html>')
-        self.response.write(headcss())
-        self.response.write(html("h1","Add routine check for routine " + routine.name))
-        self.response.write(htmlform("/doaddroutinecheckintensity/" + routine.key.urlsafe(), 
+        content = []
+        content.append(html("h1","Add routine check for routine " + routine.name))
+        content.append(htmlform("/doaddroutinecheckintensity/" + routine.key.urlsafe(), 
                                      [htmltextarea("routinecheckvalue",0)], 
                                      "Submit"))
-        self.response.write("<hr>")
-        self.response.write(htmltable(htmlrow([buttonformget("/","Home")])))
-        self.response.write('</html></body>')
+        content.append("<hr>")
+        content.append(htmltable(htmlrow([buttonformget("/","Home")])))
+        writehtmlresponse(self,content)
 
 
 
@@ -175,18 +172,17 @@ class DoAddRoutineCheckIntensity(webapp2.RequestHandler):
 
 class Logs(webapp2.RequestHandler):
     def get(self):
-        self.response.write('<body><html>')
-        self.response.write(headcss())
-        self.response.write(html("h1","Logs"))
-        self.response.write("<hr>")
+        content = []
+        content.append(html("h1","Logs"))
+        content.append("<hr>")
         user = users.get_current_user()
         if user:
             rows = [[date2string(utc2local(routinecheck.date)),routinecheck.routinename,routinecheck.email] for routinecheck in getallroutinechecks(self,user.email())]
             # rows = [[date2string(utc2local(routinecheck.date)),routinecheck.routinename] for routinecheck in getallallroutinechecks(self)]
-            self.response.write(htmltable(htmlrows(rows)))
-        self.response.write("<hr>")
-        self.response.write(htmltable(htmlrow([buttonformget("/","Home")])))
-        self.response.write('</html></body>')
+            content.append(htmltable(htmlrows(rows)))
+        content.append("<hr>")
+        content.append(htmltable(htmlrow([buttonformget("/","Home")])))
+        writehtmlresponse(self,content)
 
 
 

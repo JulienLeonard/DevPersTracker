@@ -52,12 +52,12 @@ class ListGoals(webapp2.RequestHandler):
 class AddGoal(webapp2.RequestHandler):
     def get(self):
         user = users.get_current_user()
+        
         if not user == None:
-            self.response.write('<html><body>')
-            self.response.write(ADD_GOAL_TEMPLATE)
-            self.response.write('</body></html>')
+            content = ADD_GOAL_TEMPLATE
         else:
-            self.response.write('<html><body>Sorry, you must login to access this page</body></html>')
+            content = 'Sorry, you must login to access this page'
+        writehtmlresponse(self,content)
 # [END AddGoal]
 
 # [START DoAddGoal]
@@ -87,26 +87,19 @@ class DeleteGoal(webapp2.RequestHandler):
 # [START ViewGoal]
 class ViewGoal(webapp2.RequestHandler):
     def get(self,goalid):
-        self.response.write('<html><body>')
-        self.response.write(headcss())
 
-
+        content = []
         user = users.get_current_user()
         if user:
             dict_name      = self.request.get('dict_name',USERDICT)
             goal_key = ndb.Key(urlsafe=goalid)
             goal = goal_key.get()
 
-            self.response.write(html("h1","Description"))
+            content.append(html("h1","Description"))
+            content.append(htmltable( htmlrows( [ ["Name", goal.name],["Description", goal.description]])))
+            content.append(html("h1","Routines"))
+            content.append(htmltable(htmlrows( [ [routine.name, routine.description, routine.status, date2string(utc2local(routine.date)), buttonformget("/viewroutine/" + routine.key.urlsafe(),"+"), buttonformpost("/deleteroutine/" + routine.key.urlsafe(),"Del")] for routine in getroutines(goal.name,user.email()) ] ) ) )
+            content.append("<hr>")
+            content.append(htmltable(htmlrow( [buttonformget("/addroutine/" + goal.key.urlsafe(),"Add Routine"), buttonformget("/listgoals","List"), buttonformget("/","Home")])))
 
-            self.response.write(htmltable( htmlrows( [ ["Name", goal.name],["Description", goal.description]])))
-
-            self.response.write(html("h1","Routines"))
-
-            self.response.write(htmltable(htmlrows( [ [routine.name, routine.description, routine.status, date2string(utc2local(routine.date)), buttonformget("/viewroutine/" + routine.key.urlsafe(),"+"), buttonformpost("/deleteroutine/" + routine.key.urlsafe(),"Del")] for routine in getroutines(goal.name,user.email()) ] ) ) )
-
-            self.response.write("<hr>")
-
-            self.response.write(htmltable(htmlrow( [buttonformget("/addroutine/" + goal.key.urlsafe(),"Add Routine"), buttonformget("/listgoals","List"), buttonformget("/","Home")])))
-
-        self.response.write('</body></html>')
+        writehtmlresponse(self,content)

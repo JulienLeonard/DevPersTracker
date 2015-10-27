@@ -67,5 +67,10 @@ def htmlform(action,lines,submitlabel):
 def htmltextarea(name,value):
     return "<textarea name=\"" + name + "\"         rows=\"1\" cols=\"40\">" + str(value) + "</textarea>"
 
+def writehtmlresponse(self,content):
+    self.response.write('<html><body>')
+    self.response.write(headcss())
+    self.response.write("\n".join(content))
+    self.response.write('</body></html>')
 
 

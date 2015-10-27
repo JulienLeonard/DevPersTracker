@@ -89,55 +89,44 @@ class DeleteRoutine(webapp2.RequestHandler):
 # [START ViewRoutine]
 class ViewRoutine(webapp2.RequestHandler):
     def get(self,routineid):
-        self.response.write('<html><body>')
-        self.response.write(headcss())
+
+        content = []
 
         dict_name   = self.request.get('dict_name',USERDICT)
         routine_key = ndb.Key(urlsafe=routineid)
         routine     = routine_key.get()
 
-        self.response.write(html("h1","Routine " + routine.name))
-        
-        self.response.write("<hr>")
+        content.append(html("h1","Routine " + routine.name))
+        content.append("<hr>")
+        content.append(htmltable( htmlrows( [ ["Name", routine.name],["Description", routine.description],["Frequency", getroutinedayfrequency(routine)],["Intensity",routine.intensity],["Goal", routine.goalname]])))
+        content.append("<hr>")
+        content.append(htmltable(htmlrow( [buttonformget("/editroutine/" + routine.key.urlsafe(),"Edit"), buttonformget("/listroutines","List"), buttonformget("/","Home")])))
+        writehtmlresponse(self,content)
 
-        self.response.write(htmltable( htmlrows( [ ["Name", routine.name],["Description", routine.description],["Frequency", getroutinedayfrequency(routine)],["Intensity",routine.intensity],["Goal", routine.goalname]])))
-
-        self.response.write("<hr>")
-
-        self.response.write(htmltable(htmlrow( [buttonformget("/editroutine/" + routine.key.urlsafe(),"Edit"), buttonformget("/listroutines","List"), buttonformget("/","Home")])))
-
-        self.response.write('</body></html>')
 
 
 # [START EditRoutine]
 class EditRoutine(webapp2.RequestHandler):
     def get(self,routineid):
-        self.response.write('<html><body>')
-        self.response.write(headcss())
+
+        content = []
 
         dict_name   = self.request.get('dict_name',USERDICT)
         routine_key = ndb.Key(urlsafe=routineid)
         routine     = routine_key.get()
 
-        self.response.write(html("h1","Routine " + routine.name))
-        
-        self.response.write("<hr>")
-
-        self.response.write(htmlform("/doeditroutine/" + routine.key.urlsafe(), 
+        content.append(html("h1","Routine " + routine.name))
+        content.append("<hr>")
+        content.append(htmlform("/doeditroutine/" + routine.key.urlsafe(), 
                                      [routine.name, htmltextarea("routinedescription",routine.description), htmltextarea("routineintensity",str(routine.intensity))], 
                                      "Submit"))
-
-        self.response.write("<hr>")
-
-        self.response.write(htmltable(htmlrow( [buttonformget("/viewroutine/" + routine.key.urlsafe(),"Cancel"), buttonformget("/","Home")])))
-
-        self.response.write('</body></html>')
+        content.append("<hr>")
+        content.append(htmltable(htmlrow( [buttonformget("/viewroutine/" + routine.key.urlsafe(),"Cancel"), buttonformget("/","Home")])))
+        writehtmlresponse(self,content)
 
 # [START DoEditRoutine]
 class DoEditRoutine(webapp2.RequestHandler):
     def post(self,routineid):
-        self.response.write('<html><body>')
-        self.response.write(headcss())
 
         dict_name   = self.request.get('dict_name',USERDICT)
         routine_key = ndb.Key(urlsafe=routineid)
