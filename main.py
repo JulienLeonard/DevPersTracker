@@ -26,8 +26,8 @@ from timeutils     import *
 
 
 
-def htmlroutinetodaycheck(routine,utcdaterange):
-    status = getroutinestatus(routine,utcdaterange)
+def htmlroutinetodaycheck(routine,allroutinechecks,utcdaterange):
+    status = getroutinestatus(routine,allroutinechecks,utcdaterange)
     if status == "KO" or status == "NA":
         checklabel = "Check"
         return buttonformpost("/addroutinecheck/" + routine.key.urlsafe(), checklabel,"routinecheck")
@@ -48,14 +48,15 @@ def tableschedule(request,ndays):
 
     routinedata = {}
     user        = users.get_current_user()
-    allroutines = getallroutines(request,user.email())
+    allroutines      = getallroutines(request,user.email())
+    allroutinechecks = getallroutinechecks(request,user.email())
 
     for routine in allroutines:
         routinedata[routine.name] = {}
         for daterange in dateranges:
-            routinedata[routine.name][daterange] = getroutinestatus(routine,daterange)
+            routinedata[routine.name][daterange] = getroutinestatus(routine,allroutinechecks,daterange)
         
-    rows = [headrow] + [[(routine.name,"scheduleroutinename"), (str(getroutinedayfrequency(routine)),"scheduleroutinefrequency"), (str(routine.intensity),"scheduleroutineintensity")] + [(routinedata[routine.name][daterange],"scheduleroutine" + routinedata[routine.name][daterange]) for daterange in dateranges[:-1]] + [(htmlroutinetodaycheck(routine,dateranges[-1]),"scheduleroutinecheck")] for routine in allroutines]
+    rows = [headrow] + [[(routine.name,"scheduleroutinename"), (str(getroutinedayfrequency(routine)),"scheduleroutinefrequency"), (str(routine.intensity),"scheduleroutineintensity")] + [(routinedata[routine.name][daterange],"scheduleroutine" + routinedata[routine.name][daterange]) for daterange in dateranges[:-1]] + [(htmlroutinetodaycheck(routine,allroutinechecks,dateranges[-1]),"scheduleroutinecheck")] for routine in allroutines]
 
     return htmltable(htmldivrows(rows))
 
@@ -98,7 +99,7 @@ class MainHandler(webapp2.RequestHandler):
             content.append("<hr>")
             content.append(htmllink(url,url_linktext))
 
-        writehtmlresponse(handler,content)
+        writehtmlresponse(self,content)
 
 class ScheduleHandler(webapp2.RequestHandler):
     def get(self,timetype):
@@ -110,7 +111,7 @@ class ScheduleHandler(webapp2.RequestHandler):
         content.append(htmlschedule(self,timetype))
         content.append("<hr>")
         content.append(htmltable(htmlrow([buttonformget("/","Home")])))
-        writehtmlresponse(handler,content)
+        writehtmlresponse(self,content)
 
 
 def addroutinecheck(request,routinename,value="True"):
@@ -131,18 +132,21 @@ class AddRoutineCheck(webapp2.RequestHandler):
         
         currentdaterange = utcnowdayrange()
 
-        routinechecks = getdateroutinechecks(routine.name,currentdaterange)
+        user = users.get_current_user()
+        if user:
+            allroutinechecks = getallroutinechecks(self,user.email())
+            routinechecks    = getdateroutinechecks(routine.name,allroutinechecks,currentdaterange)
 
-        if len(routinechecks):
-            for routinecheck in routinechecks:
-                routinecheck.key.delete()
-            self.redirect("/")
-        else:
-            if routine.intensity == "None" or routine.intensity == None:
-                addroutinecheck(self,routine.name)
+            if len(routinechecks):
+                for routinecheck in routinechecks:
+                    routinecheck.key.delete()
                 self.redirect("/")
             else:
-                self.redirect("/addroutinecheckintensity/" + routineid)
+                if routine.intensity == "None" or routine.intensity == None:
+                    addroutinecheck(self,routine.name)
+                    self.redirect("/")
+                else:
+                    self.redirect("/addroutinecheckintensity/" + routineid)
 
 
 class AddRoutineCheckIntensity(webapp2.RequestHandler):

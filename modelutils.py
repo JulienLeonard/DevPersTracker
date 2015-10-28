@@ -30,12 +30,13 @@ def getallallroutinechecks(request):
 def getroutines(goalname,email):
     return Routine.query(Routine.goalname == goalname).filter(Routine.email == email)
 
-def getroutinechecks(routinename):
+def getroutinechecks(routinename,allroutinechecks):
     return RoutineCheck.query(RoutineCheck.routinename == routinename).fetch()
+    # return [routinecheck for routinecheck in allroutinechecks if routinecheck.routinename == routinename]
 
-def getdateroutinechecks(routinename,utcdaterange):
+def getdateroutinechecks(routinename,allroutinechecks,utcdaterange):
     result = []
-    for routinecheck in getroutinechecks(routinename):
+    for routinecheck in getroutinechecks(routinename,allroutinechecks):
         if isdateinrange(utcdaterange,routinecheck.date):
             result.append(routinecheck)
     return result
@@ -43,8 +44,8 @@ def getdateroutinechecks(routinename,utcdaterange):
 #
 # can be NA, OK or KO
 #
-def getroutinestatus(routine,utcdaterange):
-    routinechecks = getdateroutinechecks(routine.name,utcdaterange)
+def getroutinestatus(routine,allroutinechecks,utcdaterange):
+    routinechecks = getdateroutinechecks(routine.name,allroutinechecks,utcdaterange)
     if len(routinechecks):
             return "OK"
     else:
