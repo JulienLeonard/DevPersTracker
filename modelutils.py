@@ -30,22 +30,23 @@ def getallallroutinechecks(request):
 def getroutines(goalname,email):
     return Routine.query(Routine.goalname == goalname).filter(Routine.email == email)
 
-def getroutinechecks(routinename,allroutinechecks):
-    return RoutineCheck.query(RoutineCheck.routinename == routinename).fetch()
+def getroutinechecks(routinename,allroutinecheckdata):
+    # return RoutineCheck.query(RoutineCheck.routinename == routinename).fetch()
     # return [routinecheck for routinecheck in allroutinechecks if routinecheck.routinename == routinename]
+    return [routinecheck for routinecheck in allroutinecheckdata if routinecheck[0] == routinename]
 
-def getdateroutinechecks(routinename,allroutinechecks,utcdaterange):
+def getdateroutinechecks(routinename,allroutinecheckdata,utcdaterange):
     result = []
-    for routinecheck in getroutinechecks(routinename,allroutinechecks):
-        if isdateinrange(utcdaterange,routinecheck.date):
+    for routinecheck in getroutinechecks(routinename,allroutinecheckdata):
+        if isdateinrange(utcdaterange,routinecheck[1]):
             result.append(routinecheck)
     return result
 
 #
 # can be NA, OK or KO
 #
-def getroutinestatus(routine,allroutinechecks,utcdaterange):
-    routinechecks = getdateroutinechecks(routine.name,allroutinechecks,utcdaterange)
+def getroutinestatus(routine,allroutinecheckdata,utcdaterange):
+    routinechecks = getdateroutinechecks(routine.name,allroutinecheckdata,utcdaterange)
     if len(routinechecks):
             return "OK"
     else:
