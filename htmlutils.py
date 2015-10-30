@@ -73,4 +73,6 @@ def writehtmlresponse(self,content):
     self.response.write("\n".join(content))
     self.response.write('</body></html>')
 
+def htmlcenter(content):
+    return ["<div align=\"center\">"] + content + ["</div>"]
 

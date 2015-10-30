@@ -81,26 +81,22 @@ class MainHandler(webapp2.RequestHandler):
         user = users.get_current_user()
 
         content = []
+        url = users.create_login_url(self.request.uri)
         if not user:
-            url = users.create_login_url(self.request.uri)
             url_linktext = 'Login'
             content.append(htmllink(url,url_linktext))
         else:
-            url = users.create_logout_url(self.request.uri)
-            url_linktext = 'Logout'
-            content.append(html("h1","Goals"))
-            content.append(htmltable(htmlrows([[goal.name,goal.description] for goal in getallgoals(self,user.email())])))
-            content.append(htmltable(htmlrow([buttonformget("/listgoals","List"), buttonformget("/addgoal","Add")])))
-            content.append("<hr>")
             content.append(html("h1","Schedule"))
             content.append("Now is " + date2string(localnow()))
             content.append(htmltable(htmlrow([buttonformget("/last/month","Month"), buttonformget("/last/week","Week")])))
             content.append(htmlschedule(self,"week"))
             content.append("<hr>")
-            content.append(htmltable(htmlrow([buttonformget("/logs","Logs")])))
+            content.append(htmltable(htmlrow([buttonformget("/listgoals","Goals"), buttonformget("/listroutines","Routines"),buttonformget("/logs","Logs")])))
             content.append("<hr>")
+            url_linktext = 'Logout'
             content.append(htmllink(url,url_linktext))
-
+        
+        content = htmlcenter(content)
         writehtmlresponse(self,content)
 
 class ScheduleHandler(webapp2.RequestHandler):
