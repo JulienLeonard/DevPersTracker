@@ -65,3 +65,25 @@ def getroutinedayfrequency(routine):
         return 2
 
 
+def addroutinecheck(request,routinename,value="True"):
+    user = users.get_current_user()
+    if user:
+        dict_name = request.request.get('dict_name', USERDICT)
+        oroutinecheck = RoutineCheck(parent=dict_key(dict_name))
+        oroutinecheck.routinename        = routinename
+        oroutinecheck.email              = user.email()
+        oroutinecheck.value              = value
+        oroutinecheck.put()
+    return oroutinecheck
+
+def addroutinecheckdate(request,routinename,date,value):
+    user = users.get_current_user()
+    if user:
+        dict_name = request.request.get('dict_name', USERDICT)
+        oroutinecheck = RoutineCheck(parent=dict_key(dict_name))
+        oroutinecheck.routinename        = routinename
+        oroutinecheck.email              = user.email()
+        oroutinecheck.date               = date
+        oroutinecheck.value              = value
+        oroutinecheck.put()
+    return oroutinecheck

@@ -11,12 +11,13 @@ from htmlutils        import *
 from utils            import *
 
 def routinehandlers():
-    return [('/listroutines',       ListRoutines),
-            ('/addroutine/(.*)',    AddRoutine),
-            ('/doaddroutine/(.*)',  DoAddRoutine),
-            ('/deleteroutine/(.*)', DeleteRoutine),
-            ('/viewroutine/(.*)',   ViewRoutine),
-            ('/editroutine/(.*)',   EditRoutine),
+    return [('/listroutines',         ListRoutines),
+            ('/addroutine/(.*)',      AddRoutine),
+            ('/doaddroutine/(.*)',    DoAddRoutine),
+            ('/deleteroutine/(.*)',   DeleteRoutine),
+            ('/viewroutine/(.*)',     ViewRoutine),
+            ('/editroutine/(.*)',     EditRoutine),
+            ('/scriptroutine/(.*)',   ScriptRoutine),
             ('/doeditroutine/(.*)',   DoEditRoutine)]
 
 def addroutine(request,name,description,goalname):
@@ -100,6 +101,9 @@ class ViewRoutine(webapp2.RequestHandler):
         content.append("<hr>")
         content.append(htmltable( htmlrows( [ ["Name", routine.name],["Description", routine.description],["Frequency", getroutinedayfrequency(routine)],["Intensity",routine.intensity],["Goal", routine.goalname]])))
         content.append("<hr>")
+        content.append(html("h2","Check Script "))
+        content.append(htmlform("/scriptroutine/" + routineid,[htmltextarea("routinecheckscript","","10")],"Submit"))
+        content.append("<hr>")
         content.append(htmltable(htmlrow( [buttonformget("/editroutine/" + routine.key.urlsafe(),"Edit"), buttonformget("/listroutines","List"), buttonformget("/","Home")])))
         writehtmlresponse(self,content)
 
@@ -137,3 +141,41 @@ class DoEditRoutine(webapp2.RequestHandler):
         routine.put()
 
         self.redirect("/viewroutine/" + routine.key.urlsafe())
+# [STOP DoEditRoutine]
+
+# [START ScriptRoutine]
+# script to add checks for the routine (in the past)
+# script in the form: date;value
+# 
+class ScriptRoutine(webapp2.RequestHandler):
+    def post(self,routineid):
+
+        user = users.get_current_user()
+        if not user == None:
+
+            dict_name   = self.request.get('dict_name',USERDICT)
+            routine_key = ndb.Key(urlsafe=routineid)
+            routine     = routine_key.get()
+
+
+            script = self.request.get('routinecheckscript')
+
+            for line in script.split("\n"):
+                specs = line.split(";")
+                if len(specs) == 2:
+                    sdate = specs[0]
+                    value = specs[1].strip()
+
+                    utcdaterange = daterangelocal2utc(dayrange(dateparse(sdate)))
+
+                    allroutinechecks    = getallroutinechecks(self,user.email())
+                    allroutinecheckdata = [(routinecheck.routinename,routinecheck.date,routinecheck) for routinecheck in allroutinechecks]
+
+                    for routinecheck in getdateroutinechecks(routine.name,allroutinecheckdata,utcdaterange):
+                        routinecheck[2].key.delete()
+
+                    if not value == "None":
+                        addroutinecheckdate(self,routine.name,daterangemiddle(utcdaterange),value)
+
+        self.redirect("/viewroutine/" + routine.key.urlsafe())
+

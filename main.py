@@ -44,7 +44,7 @@ def tableschedule(request,ndays):
 
     sdates = [sday(utc2local(daterange[0])) for daterange in dateranges]
 
-    headrow = [("Date","scheduletitle"), ("Frequency","scheduletitle"), ("Intensity","scheduletitle")] + [(sdate,"scheduletitle") for sdate in sdates]
+    headrow = [("Date","scheduletitle"), ("Frequency","scheduletitle"), ("Intensity","scheduletitle"), ("+","scheduletitle")] + [(sdate,"scheduletitle") for sdate in sdates]
 
     routinedata = {}
     user        = users.get_current_user()
@@ -58,7 +58,7 @@ def tableschedule(request,ndays):
         for daterange in dateranges:
             routinedata[routine.name][daterange] = getroutinestatus(routine,allroutinecheckdata,daterange)
         
-    rows = [headrow] + [[(routine.name,"scheduleroutinename"), (str(getroutinedayfrequency(routine)),"scheduleroutinefrequency"), (str(routine.intensity),"scheduleroutineintensity")] + [(routinedata[routine.name][daterange],"scheduleroutine" + routinedata[routine.name][daterange]) for daterange in dateranges[:-1]] + [(htmlroutinetodaycheck(routine,allroutinecheckdata,dateranges[-1]),"scheduleroutinecheck")] for routine in allroutines]
+    rows = [headrow] + [[(routine.name,"scheduleroutinename"), (str(getroutinedayfrequency(routine)),"scheduleroutinefrequency"), (str(routine.intensity),"scheduleroutineintensity"),(buttonformget("/viewroutine/" + routine.key.urlsafe(),"+"),"scheduleroutineview")] + [(routinedata[routine.name][daterange],"scheduleroutine" + routinedata[routine.name][daterange]) for daterange in dateranges[:-1]] + [(htmlroutinetodaycheck(routine,allroutinecheckdata,dateranges[-1]),"scheduleroutinecheck")] for routine in allroutines]
 
     return htmltable(htmldivrows(rows))
 
@@ -110,18 +110,6 @@ class ScheduleHandler(webapp2.RequestHandler):
         content.append("<hr>")
         content.append(htmltable(htmlrow([buttonformget("/","Home")])))
         writehtmlresponse(self,content)
-
-
-def addroutinecheck(request,routinename,value="True"):
-    user = users.get_current_user()
-    if user:
-        dict_name = request.request.get('dict_name', USERDICT)
-        oroutinecheck = RoutineCheck(parent=dict_key(dict_name))
-        oroutinecheck.routinename        = routinename
-        oroutinecheck.email              = user.email()
-        oroutinecheck.value              = value
-        oroutinecheck.put()
-    return oroutinecheck
 
 class AddRoutineCheck(webapp2.RequestHandler):
     def post(self,routineid):

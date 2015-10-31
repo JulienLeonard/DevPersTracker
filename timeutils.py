@@ -25,7 +25,7 @@ def midnightdate(date):
 
 def getlastdaymidnightrangesutc(localtoday,ndays):
     utctoday          = local2utc(localtoday)
-    lastlocalmidnight = datetime.datetime(localtoday.year, localtoday.month, localtoday.day)
+    lastlocalmidnight = midnightdate(localtoday)
     lastutcmidnight   = local2utc(lastlocalmidnight)
 
     dates = lreverse([utctoday] + [lastutcmidnight - datetime.timedelta(i) for i in range(ndays)])
@@ -33,10 +33,18 @@ def getlastdaymidnightrangesutc(localtoday,ndays):
 
 def utcnowdayrange():
     localtoday        = localnow()
-    lastlocalmidnight = datetime.datetime(localtoday.year, localtoday.month, localtoday.day)
+    lastlocalmidnight = midnightdate(localtoday)
     lastutcmidnight   = local2utc(lastlocalmidnight)
     return (lastutcmidnight,utcnow())
 
+def nextmidnightdate(date):
+    return midnightdate(date) + datetime.timedelta(1)
+
+def dayrange(date):
+    return (midnightdate(date),nextmidnightdate(date))
+
+def daterangelocal2utc(range):
+    return (local2utc(range[0]),local2utc(range[1]))
 
 def sday(date):
     return date.strftime("%B")[0:3] + date.strftime("%d")
@@ -49,3 +57,9 @@ def date2string(date):
 
 def isdateinrange(daterange,date):
     return daterange[0] <= date and date <= daterange[1]
+
+def dateparse(sdate):
+    return datetime.datetime.strptime(sdate,'%d/%m/%Y')
+
+def daterangemiddle(daterange):
+    return daterange[0] + (daterange[1] - daterange[0])/2 

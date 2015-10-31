@@ -64,14 +64,14 @@ def htmlform(action,lines,submitlabel):
 
     return "<form action=\"" + action + "\" method=\"post\">" + content + "<div><input type=\"submit\" value=\"" + submitlabel + "\"></div></form>"
 
-def htmltextarea(name,value):
-    return "<textarea name=\"" + name + "\"         rows=\"1\" cols=\"40\">" + str(value) + "</textarea>"
+def htmltextarea(name,value,nrows = 1):
+    return "<textarea name=\"" + name + "\"         rows=\"" + nrows + "\" cols=\"40\">" + str(value) + "</textarea>"
+
+def htmlbody(content):
+    return '<html><body>' + headcss() + content + '</body></html>'
 
 def writehtmlresponse(self,content):
-    self.response.write('<html><body>')
-    self.response.write(headcss())
-    self.response.write("\n".join(content))
-    self.response.write('</body></html>')
+    self.response.write(htmlbody("\n".join(content)))
 
 def htmlcenter(content):
     return ["<div align=\"center\">"] + content + ["</div>"]

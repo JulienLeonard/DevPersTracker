@@ -57,7 +57,7 @@ class AddGoal(webapp2.RequestHandler):
             content = ADD_GOAL_TEMPLATE
         else:
             content = 'Sorry, you must login to access this page'
-        writehtmlresponse(self,content)
+        self.response.write(htmlbody(content))
 # [END AddGoal]
 
 # [START DoAddGoal]
