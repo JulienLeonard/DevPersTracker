@@ -64,7 +64,7 @@ def htmlform(action,lines,submitlabel):
 
     return "<form action=\"" + action + "\" method=\"post\">" + content + "<div><input type=\"submit\" value=\"" + submitlabel + "\"></div></form>"
 
-def htmltextarea(name,value,nrows = 1):
+def htmltextarea(name,value,nrows = "1"):
     return "<textarea name=\"" + name + "\"         rows=\"" + nrows + "\" cols=\"40\">" + str(value) + "</textarea>"
 
 def htmlbody(content):
@@ -73,6 +73,9 @@ def htmlbody(content):
 def writehtmlresponse(self,content):
     self.response.write(htmlbody("\n".join(content)))
 
-def htmlcenter(content):
-    return ["<div align=\"center\">"] + content + ["</div>"]
+def htmldiv(scontent):
+    return "<div>" + scontent + "</div>"
+
+def htmlcenter(lcontent):
+    return ["<div align=\"center\">"] + lcontent + ["</div>"]
 

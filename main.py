@@ -64,7 +64,7 @@ def tableschedule(request,ndays):
 
 def getndays(timetype):
     if timetype == "week":
-        return 7
+        return 8
     if timetype == "month":
         return 31
 
@@ -91,7 +91,7 @@ class MainHandler(webapp2.RequestHandler):
             content.append(htmltable(htmlrow([buttonformget("/last/month","Month"), buttonformget("/last/week","Week")])))
             content.append(htmlschedule(self,"week"))
             content.append("<hr>")
-            content.append(htmltable(htmlrow([buttonformget("/listgoals","Goals"), buttonformget("/listroutines","Routines"),buttonformget("/logs","Logs")])))
+            content.append(htmltable(htmlrow([buttonformget("/listgoals","Goals"), buttonformget("/listroutines","Routines"),buttonformget("/logs","Logs"),buttonformget("/export","Exports")])))
             content.append("<hr>")
             url_linktext = 'Logout'
             content.append(htmllink(url,url_linktext))
@@ -175,7 +175,28 @@ class Logs(webapp2.RequestHandler):
         content.append(htmltable(htmlrow([buttonformget("/","Home")])))
         writehtmlresponse(self,content)
 
+def serialize(ldata):
+    return ";".join([str(data) for data in ldata])
 
+class Export(webapp2.RequestHandler):
+    def get(self):
+        content = []
+        content.append(html("h1","Export"))
+        content.append("<hr>")
+        user = users.get_current_user()
+        if user:
+            content.append(html("h2","Goals"))
+            for goal in getallgoals(self,user.email()):
+                content.append(htmldiv(serialize([goal.email,goal.name,goal.description,goal.parentgoal,goal.status,goal.date])))
+            content.append(html("h2","Routines"))
+            for routine in getallroutines(self,user.email()):
+                content.append(htmldiv(serialize([routine.email,routine.name,routine.description,routine.goalname,routine.status,routine.intensity,routine.date])))
+            content.append(html("h2","RoutineChecks"))
+            for routinecheck in getallroutinechecks(self,user.email()):
+                content.append(htmldiv(serialize([routinecheck.email,routinecheck.date,routinecheck.routinename,routinecheck.value])))
+        content.append("<hr>")
+        content.append(htmltable(htmlrow([buttonformget("/","Home")])))
+        writehtmlresponse(self,content)
 
 # class UpgradeData(webapp2.RequestHandler):
 #     def get(self):
@@ -193,6 +214,6 @@ class Logs(webapp2.RequestHandler):
 #             self.response.write('</html></body>')
 
 
-handlers = [('/', MainHandler),('/logs', Logs), ('/last/(.*)', ScheduleHandler),('/addroutinecheck/(.*)', AddRoutineCheck), ('/addroutinecheckintensity/(.*)', AddRoutineCheckIntensity), ('/doaddroutinecheckintensity/(.*)', DoAddRoutineCheckIntensity)] + goalhandlers() + routinehandlers()
+handlers = [('/', MainHandler),('/logs', Logs),('/export', Export), ('/last/(.*)', ScheduleHandler),('/addroutinecheck/(.*)', AddRoutineCheck), ('/addroutinecheckintensity/(.*)', AddRoutineCheckIntensity), ('/doaddroutinecheckintensity/(.*)', DoAddRoutineCheckIntensity)] + goalhandlers() + routinehandlers()
 
 app = webapp2.WSGIApplication(handlers, debug=True)
