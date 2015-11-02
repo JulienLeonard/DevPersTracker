@@ -28,7 +28,7 @@ from timeutils     import *
 
 def htmlroutinetodaycheck(routine,allroutinecheckdata,utcdaterange):
     status = getroutinestatus(routine,allroutinecheckdata,utcdaterange)
-    if status == "KO" or status == "NA":
+    if status == "KO" or status == "NA" or status == "COVER":
         checklabel = "Check"
         return buttonformpost("/addroutinecheck/" + routine.key.urlsafe(), checklabel,"routinecheck")
     if status == "OK":

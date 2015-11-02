@@ -177,5 +177,5 @@ class ScriptRoutine(webapp2.RequestHandler):
                     if not value == "None":
                         addroutinecheckdate(self,routine.name,daterangemiddle(utcdaterange),value)
 
-        self.redirect("/viewroutine/" + routine.key.urlsafe())
+        self.redirect("/")
 
