@@ -41,6 +41,10 @@ td {
  background-color: #FF3300;    
 }
 
+.routinecheckoptional {
+ background-color: #FFFF00;    
+}
+
 .routineuncheck {
  background-color: #00FF33;
 }

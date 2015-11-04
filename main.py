@@ -30,7 +30,8 @@ def htmlroutinetodaycheck(routine,allroutinecheckdata,utcdaterange):
     status = getroutinestatus(routine,allroutinecheckdata,utcdaterange)
     if status == "KO" or status == "NA" or status == "COVER":
         checklabel = "Check"
-        return buttonformpost("/addroutinecheck/" + routine.key.urlsafe(), checklabel,"routinecheck")
+        classbutton = iff(status == "KO","routinecheck","routinecheckoptional")
+        return buttonformpost("/addroutinecheck/" + routine.key.urlsafe(), checklabel,classbutton)
     if status == "OK":
         checklabel = "Uncheck"
         return buttonformpost("/addroutinecheck/" + routine.key.urlsafe(), checklabel,"routineuncheck")

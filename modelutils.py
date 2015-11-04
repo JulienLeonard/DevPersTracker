@@ -54,7 +54,7 @@ def getroutinestatus(routine,allroutinecheckdata,utcdaterange):
             return "NA"
         else:
             # check frequency covering
-            newutcdaterange = (utcdaterange[0] - datetime.timedelta(getroutinedayfrequency(routine)),utcdaterange[1])
+            newutcdaterange = (utcdaterange[0] - datetime.timedelta(getroutinedayfrequency(routine)-1),utcdaterange[1])
             freqroutinechecks = getdateroutinechecks(routine.name,allroutinecheckdata,newutcdaterange)
             
             if len(freqroutinechecks) > 0:
@@ -72,7 +72,7 @@ def getroutinedayfrequency(routine):
         return 31
     if "every 2 days" in routine.description:
         return 2
-
+    return 1
 
 def addroutinecheck(request,routinename,value="True"):
     user = users.get_current_user()
