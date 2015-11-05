@@ -26,14 +26,14 @@ from timeutils     import *
 
 
 
-def htmlroutinetodaycheck(routine,allroutinecheckdata,utcdaterange):
+def htmlroutinetodaycheck(routine,allroutinecheckdata,utcdaterange,routinename = False):
     status = getroutinestatus(routine,allroutinecheckdata,utcdaterange)
     if status == "KO" or status == "NA" or status == "COVER":
-        checklabel = "Check"
+        checklabel = iff(routinename == False,"Check",routine.name)
         classbutton = iff(status == "KO","routinecheck","routinecheckoptional")
         return buttonformpost("/addroutinecheck/" + routine.key.urlsafe(), checklabel,classbutton)
     if status == "OK":
-        checklabel = "Uncheck"
+        checklabel = iff(routinename == False,"Uncheck",routine.name)
         return buttonformpost("/addroutinecheck/" + routine.key.urlsafe(), checklabel,"routineuncheck")
     return status
 
@@ -89,7 +89,7 @@ class MainHandler(webapp2.RequestHandler):
         else:
             content.append(html("h1","Schedule"))
             content.append("Now is " + date2string(localnow()))
-            content.append(htmltable(htmlrow([buttonformget("/last/month","Month"), buttonformget("/last/week","Week")])))
+            content.append(htmltable(htmlrow([buttonformget("/dashboard","Dashboard"),buttonformget("/last/month","Month"), buttonformget("/last/week","Week")])))
             content.append(htmlschedule(self,"week"))
             content.append("<hr>")
             content.append(htmltable(htmlrow([buttonformget("/listgoals","Goals"), buttonformget("/listroutines","Routines"),buttonformget("/logs","Logs"),buttonformget("/export","Exports")])))
@@ -105,12 +105,35 @@ class ScheduleHandler(webapp2.RequestHandler):
         content = []
         content.append(html("h1","Schedule"))
         content.append("<hr>")
-        content.append(htmltable(htmlrow([buttonformget("/last/month","Month"), buttonformget("/last/week","Week")])))
+        content.append(htmltable(htmlrow([buttonformget("/dashboard","Dashboard"),buttonformget("/last/month","Month"), buttonformget("/last/week","Week")])))
         content.append("<hr>")
         content.append(htmlschedule(self,timetype))
         content.append("<hr>")
         content.append(htmltable(htmlrow([buttonformget("/","Home")])))
         writehtmlresponse(self,content)
+
+class Dashboard(webapp2.RequestHandler):
+    def get(self):
+        content = []
+        content.append(html("h1","Dashboard"))
+        content.append("<hr>")
+        content.append(htmltable(htmlrow([buttonformget("/dashboard","Dashboard"),buttonformget("/last/month","Month"), buttonformget("/last/week","Week")])))
+        content.append("<hr>")
+
+        user        = users.get_current_user()
+        allgoals            = getallgoals(self,user.email())
+        allroutines         = getallroutines(self,user.email())
+        allroutinechecks    = getallroutinechecks(self,user.email())
+        allroutinecheckdata = [(routinecheck.routinename,routinecheck.date) for routinecheck in allroutinechecks]
+        
+        dateranges = getlastdaymidnightrangesutc(localnow(),1)
+
+        content.append(htmltable(htmldivrows([[(goal.name,"schedulegoal")] + [(htmlroutinetodaycheck(routine,allroutinecheckdata,dateranges[-1],True),"scheduleroutinecheck") for routine in getroutines(goal.name,user.email())]  for goal in allgoals])))
+
+        content.append("<hr>")
+        content.append(htmltable(htmlrow([buttonformget("/","Home")])))
+        writehtmlresponse(self,content)
+
 
 class AddRoutineCheck(webapp2.RequestHandler):
     def post(self,routineid):
@@ -215,6 +238,6 @@ class Export(webapp2.RequestHandler):
 #             self.response.write('</html></body>')
 
 
-handlers = [('/', MainHandler),('/logs', Logs),('/export', Export), ('/last/(.*)', ScheduleHandler),('/addroutinecheck/(.*)', AddRoutineCheck), ('/addroutinecheckintensity/(.*)', AddRoutineCheckIntensity), ('/doaddroutinecheckintensity/(.*)', DoAddRoutineCheckIntensity)] + goalhandlers() + routinehandlers()
+handlers = [('/', MainHandler),('/dashboard', Dashboard),('/logs', Logs),('/export', Export), ('/last/(.*)', ScheduleHandler),('/addroutinecheck/(.*)', AddRoutineCheck), ('/addroutinecheckintensity/(.*)', AddRoutineCheckIntensity), ('/doaddroutinecheckintensity/(.*)', DoAddRoutineCheckIntensity)] + goalhandlers() + routinehandlers()
 
 app = webapp2.WSGIApplication(handlers, debug=True)
