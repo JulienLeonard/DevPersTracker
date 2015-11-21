@@ -103,7 +103,7 @@ class MainHandler(webapp2.RequestHandler):
         else:
             content.append(html("h1","Schedule"))
             content.append("Now is " + date2string(localnow()))
-            content.append(htmltable(htmlrow([buttonformget("/dashboard","Dashboard"),buttonformget("/dashboard2","Dashboard2"),buttonformget("/last/month","Month"), buttonformget("/last/week","Week")])))
+            content.append(htmltable(htmlrow([buttonformget("/dashboard","Dashboard"),buttonformget("/last/month","Month"), buttonformget("/last/week","Week")])))
             content.append(htmlschedule(self,"week"))
             content.append("<hr>")
             content.append(htmltable(htmlrow([buttonformget("/listgoals","Goals"), buttonformget("/listroutines","Routines"),buttonformget("/logs","Logs"),buttonformget("/export","Exports")])))
@@ -165,9 +165,9 @@ def valueroutines(routines):
 class Dashboard2(webapp2.RequestHandler):
     def get(self):
         content = []
-        content.append(html("h1","Dashboard2"))
+        content.append(html("h1","Dashboard"))
         content.append("<hr>")
-        content.append(htmltable(htmlrow([buttonformget("/dashboard2","Dashboard2"),buttonformget("/last/month","Month"), buttonformget("/last/week","Week")])))
+        content.append(htmltable(htmlrow([buttonformget("/dashboard","Dashboard"),buttonformget("/last/month","Month"), buttonformget("/last/week","Week")])))
         content.append("<hr>")
 
         user                = users.get_current_user()
@@ -177,8 +177,6 @@ class Dashboard2(webapp2.RequestHandler):
         allroutinecheckdata = [(routinecheck.routinename,routinecheck.date) for routinecheck in allroutinechecks]
         
         dateranges = getlastdaymidnightrangesutc(localnow(),1)
-
-        content.append("<hr>")
 
         content.append(htmltable(htmldivrows([[(goal.name,"schedulegoal")] + [(htmlroutinetodaycheck(routine,allroutinecheckdata,dateranges[-1],True),"scheduleroutinecheck") for routine in valueroutines(getroutines(goal.name,user.email()))]  for goal in allgoals])))
 
@@ -215,7 +213,7 @@ class PostDashboard2(webapp2.RequestHandler):
                     if routine.intensity == "None" or routine.intensity == None:
                         addroutinecheck(self,routine.name)
 
-        self.redirect("/dashboard2")
+        self.redirect("/dashboard")
 
 class AddRoutineCheck(webapp2.RequestHandler):
     def post(self,routineid):
@@ -320,6 +318,6 @@ class Export(webapp2.RequestHandler):
 #             self.response.write('</html></body>')
 
 
-handlers = [('/', MainHandler),('/dashboard', Dashboard),('/dashboard2', Dashboard2),('/postdashboard2', PostDashboard2),('/logs', Logs),('/export', Export), ('/last/(.*)', ScheduleHandler),('/addroutinecheck/(.*)', AddRoutineCheck), ('/addroutinecheckintensity/(.*)', AddRoutineCheckIntensity), ('/doaddroutinecheckintensity/(.*)', DoAddRoutineCheckIntensity)] + goalhandlers() + routinehandlers()
+handlers = [('/', MainHandler),('/dashboard', Dashboard2),('/postdashboard2', PostDashboard2),('/logs', Logs),('/export', Export), ('/last/(.*)', ScheduleHandler),('/addroutinecheck/(.*)', AddRoutineCheck), ('/addroutinecheckintensity/(.*)', AddRoutineCheckIntensity), ('/doaddroutinecheckintensity/(.*)', DoAddRoutineCheckIntensity)] + goalhandlers() + routinehandlers()
 
 app = webapp2.WSGIApplication(handlers, debug=True)
