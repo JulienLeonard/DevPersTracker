@@ -64,7 +64,7 @@ def tableschedule(request,ndays):
     routinedata = {}
     user        = users.get_current_user()
     allroutines         = getallroutines(request,user.email())
-    allroutinechecks    = getallroutinechecks(request,user.email())
+    allroutinechecks    = getallroutinechecksndays(request,user.email(),ndays)
     allroutinecheckdata = [(routinecheck.routinename,routinecheck.date) for routinecheck in allroutinechecks]
     
 
@@ -137,7 +137,7 @@ class Dashboard(webapp2.RequestHandler):
         user        = users.get_current_user()
         allgoals            = getallgoals(self,user.email())
         allroutines         = getallroutines(self,user.email())
-        allroutinechecks    = getallroutinechecks(self,user.email())
+        allroutinechecks    = getallroutinecheckstoday(self,user.email())
         allroutinecheckdata = [(routinecheck.routinename,routinecheck.date) for routinecheck in allroutinechecks]
         
         dateranges = getlastdaymidnightrangesutc(localnow(),1)
@@ -224,7 +224,7 @@ class AddRoutineCheck(webapp2.RequestHandler):
 
         user = users.get_current_user()
         if user:
-            allroutinechecks = getallroutinechecks(self,user.email())
+            allroutinechecks = getallroutinecheckstoday(self,user.email())
             allroutinecheckdata = [(routinecheck.routinename,routinecheck.date,routinecheck) for routinecheck in allroutinechecks]
             routinechecks       = getdateroutinechecks(routine.name,allroutinecheckdata,currentdaterange)
 
