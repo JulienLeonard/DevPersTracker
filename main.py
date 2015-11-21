@@ -148,6 +148,20 @@ class Dashboard(webapp2.RequestHandler):
         content.append(htmltable(htmlrow([buttonformget("/","Home")])))
         writehtmlresponse(self,content)
 
+def checkroutines(routines):
+    result = []
+    for routine in routines:
+        if routine.intensity == "None" or routine.intensity == None:
+            result.append(routine)
+    return result
+
+def valueroutines(routines):
+    result = []
+    for routine in routines:
+        if not(routine.intensity == "None" or routine.intensity == None):
+            result.append(routine)
+    return result
+
 class Dashboard2(webapp2.RequestHandler):
     def get(self):
         content = []
@@ -164,8 +178,14 @@ class Dashboard2(webapp2.RequestHandler):
         
         dateranges = getlastdaymidnightrangesutc(localnow(),1)
 
+        content.append("<hr>")
+
+        content.append(htmltable(htmldivrows([[(goal.name,"schedulegoal")] + [(htmlroutinetodaycheck(routine,allroutinecheckdata,dateranges[-1],True),"scheduleroutinecheck") for routine in valueroutines(getroutines(goal.name,user.email()))]  for goal in allgoals])))
+
+        content.append("<hr>")
+
         content.append("<form action=\"postdashboard2\" method=\"post\">")
-        content.append(htmltable(htmldivrows([[(goal.name,"schedulegoal")] + [(htmlroutinetodaycheckform(routine,allroutinecheckdata,dateranges[-1]),"scheduleroutinecheck") for routine in getroutines(goal.name,user.email())]  for goal in allgoals])))
+        content.append(htmltable(htmldivrows([[(goal.name,"schedulegoal")] + [(htmlroutinetodaycheckform(routine,allroutinecheckdata,dateranges[-1]),"scheduleroutinecheck") for routine in checkroutines(getroutines(goal.name,user.email()))]  for goal in allgoals])))
         content.append("<input type=\"submit\" class=\"formsubmit\" value=\"Submit\"></form>")
 
         content.append("<hr>")
