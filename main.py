@@ -37,6 +37,20 @@ def htmlroutinetodaycheck(routine,allroutinecheckdata,utcdaterange,routinename =
         return buttonformpost("/addroutinecheck/" + routine.key.urlsafe(), checklabel,"routineuncheck")
     return status
 
+def htmlroutinetodaycheckform(routine,allroutinecheckdata,utcdaterange):
+    if not(routine.intensity == "None" or routine.intensity == None):
+        return htmlroutinetodaycheck(routine,allroutinecheckdata,utcdaterange)
+
+    status = getroutinestatus(routine,allroutinecheckdata,utcdaterange)
+
+    if status == "KO" or status == "NA" or status == "COVER":
+        classbutton = iff(status == "KO","routinecheck","routinecheckoptional")
+        checked     = "" 
+    if status == "OK":
+        classbutton = "routineuncheck"
+        checked = "checked"
+    return "<div class=\"" + classbutton + "\"><input type=\"checkbox\" class=\"" + classbutton + "\" name=\"check" + routine.name + "\" value=\"DONE\"" + checked + ">" + routine.name + "<br></div>"
+
 
 def tableschedule(request,ndays):
     
@@ -89,7 +103,7 @@ class MainHandler(webapp2.RequestHandler):
         else:
             content.append(html("h1","Schedule"))
             content.append("Now is " + date2string(localnow()))
-            content.append(htmltable(htmlrow([buttonformget("/dashboard","Dashboard"),buttonformget("/last/month","Month"), buttonformget("/last/week","Week")])))
+            content.append(htmltable(htmlrow([buttonformget("/dashboard","Dashboard"),buttonformget("/dashboard2","Dashboard2"),buttonformget("/last/month","Month"), buttonformget("/last/week","Week")])))
             content.append(htmlschedule(self,"week"))
             content.append("<hr>")
             content.append(htmltable(htmlrow([buttonformget("/listgoals","Goals"), buttonformget("/listroutines","Routines"),buttonformget("/logs","Logs"),buttonformget("/export","Exports")])))
@@ -134,6 +148,54 @@ class Dashboard(webapp2.RequestHandler):
         content.append(htmltable(htmlrow([buttonformget("/","Home")])))
         writehtmlresponse(self,content)
 
+class Dashboard2(webapp2.RequestHandler):
+    def get(self):
+        content = []
+        content.append(html("h1","Dashboard2"))
+        content.append("<hr>")
+        content.append(htmltable(htmlrow([buttonformget("/dashboard2","Dashboard2"),buttonformget("/last/month","Month"), buttonformget("/last/week","Week")])))
+        content.append("<hr>")
+
+        user                = users.get_current_user()
+        allgoals            = getallgoals(self,user.email())
+        allroutines         = getallroutines(self,user.email())
+        allroutinechecks    = getallroutinecheckstoday(self,user.email())
+        allroutinecheckdata = [(routinecheck.routinename,routinecheck.date) for routinecheck in allroutinechecks]
+        
+        dateranges = getlastdaymidnightrangesutc(localnow(),1)
+
+        content.append("<form action=\"postdashboard2\" method=\"post\">")
+        content.append(htmltable(htmldivrows([[(goal.name,"schedulegoal")] + [(htmlroutinetodaycheckform(routine,allroutinecheckdata,dateranges[-1]),"scheduleroutinecheck") for routine in getroutines(goal.name,user.email())]  for goal in allgoals])))
+        content.append("<input type=\"submit\" class=\"formsubmit\" value=\"Submit\"></form>")
+
+        content.append("<hr>")
+
+        content.append(htmltable(htmlrow([buttonformget("/","Home")])))
+        writehtmlresponse(self,content)
+
+class PostDashboard2(webapp2.RequestHandler):
+    def post(self):
+        user                = users.get_current_user()
+        allgoals            = getallgoals(self,user.email())
+        allroutines         = getallroutines(self,user.email())
+        dateranges          = getlastdaymidnightrangesutc(localnow(),1)
+        allroutinechecks    = getallroutinecheckstoday(self,user.email())
+        allroutinecheckdata = [(routinecheck.routinename,routinecheck.date,routinecheck) for routinecheck in allroutinechecks]
+        
+        content = ""
+        for routine in allroutines:
+            if routine.intensity == "None" or routine.intensity == None:
+                routinenewstatus = self.request.get( "check" + routine.name)
+                routinechecks    = getdateroutinechecks(routine.name,allroutinecheckdata,dateranges[-1])
+
+                if len(routinenewstatus) == 0:
+                    for routinecheck in routinechecks:
+                        routinecheck[2].key.delete()
+                else:
+                    if routine.intensity == "None" or routine.intensity == None:
+                        addroutinecheck(self,routine.name)
+
+        self.redirect("/dashboard2")
 
 class AddRoutineCheck(webapp2.RequestHandler):
     def post(self,routineid):
@@ -238,6 +300,6 @@ class Export(webapp2.RequestHandler):
 #             self.response.write('</html></body>')
 
 
-handlers = [('/', MainHandler),('/dashboard', Dashboard),('/logs', Logs),('/export', Export), ('/last/(.*)', ScheduleHandler),('/addroutinecheck/(.*)', AddRoutineCheck), ('/addroutinecheckintensity/(.*)', AddRoutineCheckIntensity), ('/doaddroutinecheckintensity/(.*)', DoAddRoutineCheckIntensity)] + goalhandlers() + routinehandlers()
+handlers = [('/', MainHandler),('/dashboard', Dashboard),('/dashboard2', Dashboard2),('/postdashboard2', PostDashboard2),('/logs', Logs),('/export', Export), ('/last/(.*)', ScheduleHandler),('/addroutinecheck/(.*)', AddRoutineCheck), ('/addroutinecheckintensity/(.*)', AddRoutineCheckIntensity), ('/doaddroutinecheckintensity/(.*)', DoAddRoutineCheckIntensity)] + goalhandlers() + routinehandlers()
 
 app = webapp2.WSGIApplication(handlers, debug=True)

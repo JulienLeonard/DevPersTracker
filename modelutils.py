@@ -23,6 +23,11 @@ def getallroutinechecks(request,email):
     dict_name = request.request.get('dict_name', USERDICT)
     return RoutineCheck.query(ancestor=dict_key(dict_name)).filter(RoutineCheck.email == email).order(-RoutineCheck.date)
 
+def getallroutinecheckstoday(request,email):
+    dict_name    = request.request.get('dict_name', USERDICT)
+    utcmidnighttoday = utcnowdayrange()[0]
+    return RoutineCheck.query(ancestor=dict_key(dict_name)).filter(RoutineCheck.email == email).filter(RoutineCheck.date >= utcmidnighttoday)
+
 def getallallroutinechecks(request):
     dict_name = request.request.get('dict_name', USERDICT)
     return RoutineCheck.query(ancestor=dict_key(dict_name)).order(-RoutineCheck.date)

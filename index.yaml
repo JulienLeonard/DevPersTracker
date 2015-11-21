@@ -37,10 +37,21 @@ indexes:
     direction: desc
 
 - kind: RoutineCheck
+  properties:
+  - name: email
+  - name: date
+
+- kind: RoutineCheck
   ancestor: yes
   properties:
   - name: date
     direction: desc
+
+- kind: RoutineCheck
+  ancestor: yes
+  properties:
+  - name: email
+  - name: date
 
 - kind: RoutineCheck
   ancestor: yes
